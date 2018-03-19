@@ -1,0 +1,9 @@
+.user-detail {
+    padding: 10px;
+    text-align: center;
+}
+
+.mentions-container {
+    white-space: wrap;
+    display: inline;
+}

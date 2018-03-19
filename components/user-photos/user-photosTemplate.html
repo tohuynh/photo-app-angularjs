@@ -1,0 +1,52 @@
+<div ng-repeat="(index,photo) in photos | orderBy:'date_time'">
+    <md-card>
+        <md-card-header>
+            <md-card-header-text>
+                {{photo.date_time | date : "y/MM/dd, h:mm:ss a" }}
+            </md-card-header-text>
+            
+        </md-card-header>
+        <md-card-content>
+            <img flex="95" ng-src="images/{{photo.file_name}}" />
+            <span class="toggle-favorite" aria-label="toggle favorite photo" ng-class="{'active': !isFavorite(photo)}" ng-disabled="isFavorite(photo)" ng-click="toggleFavorite(photo)">
+                <md-tooltip md-direction="bottom">{{isFavorite(photo) ? 'You have favorited this photo': 'Favorite this photo'}}</md-tooltip>
+                <i class="fa fa-heart"></i>
+            </span>
+            <md-input-container class="md-block">
+                <textarea class="photo-comment" type="text" placeholder="Write a comment"
+                    ng-model="photo.newComment"
+                    mentio
+                    mentio-id="'m'+index"
+                    mentio-typed-term="typedTerm">
+                </textarea>
+                <mentio-menu
+                    mentio-for="'m' +index"
+                    mentio-trigger-char="'@'"
+                    mentio-items="users"
+                    mentio-template-url="/people-mentions.tpl"
+                    mentio-search="searchUsers(term)"
+                    mentio-select="selectUser(item)"
+                    >
+                </mentio-menu>
+                <md-button class="md-raised md-primary" ng-disabled="!photo.newComment" ng-click="commentSubmit(photo)">Post</md-button>
+                
+            </md-input-container>
+            <div ng-repeat="comment in photo.comments | orderBy:'date_time'">
+                <div>
+                    <a ng-href="#!/users/{{comment.user._id}}">{{comment.user.first_name}} {{comment.user.last_name}}</a>
+                    <p class="photo-comment">{{comment.comment}}</p>
+                    <p>{{comment.date_time | date : "y/MM/dd, h:mm:ss a"}}</p>
+                <div>
+            </div>
+        <md-card-content>
+    </md-card>
+
+</div>
+
+<script type="text/ng-template" id="/people-mentions.tpl">
+    <ul class="user-search" >
+        <li mentio-menu-item="person" ng-repeat="person in items" class="list-group-item">
+            <span class="text-primary" ng-bind-html="person.first_name + ' ' + person.last_name| mentioHighlight:typedTerm:'menu-highlighted' | unsafe"></span>
+        </li>
+    </ul>
+</script>

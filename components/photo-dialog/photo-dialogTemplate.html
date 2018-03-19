@@ -1,0 +1,24 @@
+<md-dialog>
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Select Privacy Settings</h2>
+        </div>
+       
+    </md-toolbar>
+    <md-dialog-content>
+        <div class="md-dialog-content">
+            <h2>Select who can view this photo</h2>
+            <div ng-repeat="user in users">
+                <md-checkbox ng-model="user.selected">
+                    {{user.first_name}} {{user.last_name}}
+                </md-checkbox>
+            </div>
+        </div>
+        
+    </md-dialog-content>
+    <md-dialog-actions layout="row" layout-align="center center">
+        <md-button ng-click="selectAll()">All users can view this photo</md-button>
+        <md-button ng-click="selectRestricted()">Only the selected users can view this photo</md-button>
+        
+    </md-dialog-actions>
+</md-dialog>

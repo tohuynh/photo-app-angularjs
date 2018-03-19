@@ -1,0 +1,10 @@
+<div layout="row" layout-align="center start" layout-wrap>
+    <md-card layout="row" ng-repeat="photo in photos | orderBy:'date_time'">
+        <md-button aria-label="Expand favorite" ng-click="showImgModal($event, photo)">
+            <img class="thumbnail" ng-src="images/{{photo.file_name}}" />
+        </md-button>
+        <span class="remove-favorite" aria-label="Unfavorite photo" ng-click="toggleFavorite(photo)">
+            <i class="fa fa-times" aria-hidden="true"></i>
+        </span>
+    </md-card>
+</div>

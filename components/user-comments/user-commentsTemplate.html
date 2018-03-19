@@ -1,0 +1,10 @@
+<md-list ng-repeat="photo in photos | orderBy:'comments.date_time'">
+    <md-card>
+        <md-card-content>
+            <a class="user-comment" ng-href="#!/photos/{{photo.user_id}}?photoId={{photo._id}}">
+            <img class="thumbnail" ng-src="images/{{photo.file_name}}"/>
+            <p class="photo-comment">{{photo.comments.comment}}</p>
+            </a>
+        </md-card-content>
+    </md-card>
+</md-list>

@@ -1,0 +1,11 @@
+<md-dialog aria-label="Expaned image">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>{{modal.photo.date_time | date : "y/MM/dd, h:mm:ss a" }}</h2>
+        </div>
+       
+    </md-toolbar>
+    <md-dialog-content>
+        <img ng-src="images/{{modal.photo.file_name}}"/>
+    </md-dialog-content>
+</md-dialog>

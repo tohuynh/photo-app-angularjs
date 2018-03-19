@@ -1,0 +1,97 @@
+<div layout="row" layout-align="space-around" ng-cloak>
+    <md-card flex="50">
+        <md-card-content>
+            <form name="login">
+                <md-input-container class="md-block">
+                    <label>Login name</label>
+                    <input type="text" name="login_name" ng-model="loginForm.login_name" required />
+                    <div ng-messages="login.login_name.$error" role="alert">
+                        <div ng-message="required">Please enter your login name.</div>
+                    </div>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Password</label>
+                    <input type="password" name="password" ng-model="loginForm.password" required />
+                    <div ng-messages="login.password.$error" role="alert">
+                        <div ng-message="required">Please enter your password.</div>
+
+                    </div>
+                </md-input-container>
+                <div layout="row" layout-align="center center">
+                    <md-button class="md-raised md-accent" ng-click="registerMe = !registerMe">Create a new account</md-button>
+                    <md-button class="md-raised md-primary" ng-disabled="login.$invalid" ng-click="loginSubmit()">Login</md-button>
+                </div>
+            </form>
+            <!--<pre>login.login_name.$error = {{ login.login_name.$error | json }}</pre>
+            <pre>login.password.$error = {{ login.password.$error | json }}</pre>-->
+            <form ng-show="registerMe" name="register" >
+
+                <div class="md-primary">
+                  <h2>Registration Form</h2>
+                </div>
+
+                <md-input-container class="md-block">
+                    <label>Login name</label>
+                    <input type="text" name="login_name" ng-model="registerForm.login_name" required />
+                    <div ng-messages="register.login_name.$error" role="alert" >
+                        <div ng-message="required">Please enter your login name.</div>
+                    </div>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Password</label>
+                    <input type="password" name="password" ng-model="registerForm.password" required />
+                    <div ng-messages="register.password.$error" role="alert" >
+                        <div ng-message="required">Please enter your password.</div>
+
+                    </div>
+                </md-input-container>
+                
+                <md-input-container class="md-block">
+                    <label>Retype Password</label>
+                    <input type="password" name="confirm_password" ng-model="registerForm.confirm_password" compare-to="registerForm.password"required />
+                    <div ng-messages="register.confirm_password.$error" role="alert">
+                        <div ng-message="required">Please retype your password.</div>
+                        <div ng-message="compareTo">Passwords do not match.</div>
+                    </div>
+                </md-input-container>
+              
+                <md-input-container class="md-block">
+                    <label>First name</label>
+                    <input type="text" name="first_name" ng-model="registerForm.first_name" required />
+                    <div ng-messages="register.first_name.$error" role="alert" >
+                        <div ng-message="required">Please enter your first name.</div>
+                    </div>
+                </md-input-container>
+
+                <md-input-container class="md-block">
+                    <label>Last name</label>
+                    <input type="text" name="last_name" ng-model="registerForm.last_name" required />
+                    <div ng-messages="register.last_name.$error" role="alert" >
+                        <div ng-message="required">Please enter your last name.</div>
+                    </div>
+                </md-input-container>
+                
+                <md-input-container class="md-block">
+                    <label>Location</label>
+                    <input type="text" name="location" ng-model="registerForm.location" />
+                </md-input-container>
+
+                <md-input-container class="md-block">
+                    <label>Description</label>
+                    <textarea type="text" name="description" ng-model="registerForm.description"></textarea>
+                </md-input-container>
+
+                <md-input-container class="md-block">
+                    <label>occupation</label>
+                    <input type="text" name="occupation" ng-model="registerForm.occupation" />
+                </md-input-container>
+                <div layout="row" layout-align="center">
+                    <md-button type="submit" class="md-raised md-primary" ng-disabled="register.$invalid" ng-click="registerSubmit()">Register</md-button>
+                </div>
+                        
+            </form>
+            <!--<pre>register.password.$error = {{ register.password.$error | json }}</pre>
+            <pre>register.confirm_password.$error = {{ register.confirm_password.$error | json }}</pre>-->
+        <md-card-content>
+    </md-card>
+</div>

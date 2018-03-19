@@ -1,0 +1,49 @@
+.user-photos {
+    padding: 10px;
+}
+
+.photo-comment {
+    white-space: wrap;
+    overflow: auto;
+}
+
+.active {
+    color: red;
+    cursor: pointer;
+}
+
+.toggle-favorite {
+    position: absolute;
+}
+
+.user-search {
+    box-shadow: 0 5px 15px rgba(0,0,0,.5);
+    border-radius: 6px;
+    -webkit-box-shadow: 0 3px 9px rgba(0,0,0,.5);
+    box-shadow: 0 3px 9px rgba(0,0,0,.5);
+    background-clip: padding-box;
+    outline: 0;
+    color: black;
+    background-color: white;
+    border-color: blue;
+    list-style-type:none;
+    width: 200px;
+}
+
+.user-search .list-group-item.active {
+    color: #fff;
+    background-color: #428bca;
+    border-color: #428bca;
+}
+
+.user-search .list-group-item.active .text-primary {
+    color: #fff;
+}
+
+.user-search .list-group-item {
+    padding: 5px;
+}
+
+.user-search:hover {
+    cursor: pointer;
+}
