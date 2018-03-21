@@ -1,24 +1,3 @@
-<!--<div class="user-list" ng-repeat="user in users" ng-if="users">
-    <a ng-href="#!/users/{{user._id}}">{{user.first_name}} {{user.last_name}}</a>
-    <span ng-if="main.advanced">
-        <a ng-href="#!/photos/{{user._id}}">
-            <span class="fa-stack fa-2x">
-                <span class="fa fa-camera fa-stack-2x"></span>
-                <strong class="fa-stack-1x fa-inverse photo-count-text">{{user.photo_count}}</strong>
-            </span>
-
-        </a>
-        <a ng-href="#!/comments/{{user._id}}">
-            <span class="fa-stack fa-2x">
-                <span class="fa fa-comment fa-stack-2x"></span>
-                <strong class="fa-stack-1x fa-inverse">{{user.comment_count}}</strong>
-            </span>
-
-        </a>
-    </span>
-</div>
--->
-
 <md-list ng-repeat="user in main.users">
     <md-list-item layout="row" layout-align="space-between center" ng-href="#!/users/{{user._id}}">
         <div flex>{{user.first_name}} {{user.last_name}}</div>

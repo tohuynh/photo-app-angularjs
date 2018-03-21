@@ -2,20 +2,8 @@
 
 cs142App.controller('UserListController', ['$scope', '$resource',
     function ($scope, $resource) {
-        
-
-        //console.log('window.cs142models.userListModel()', window.cs142models.userListModel());
-        
-        /*$scope.FetchModel('/user/list', function(response) {
-            $scope.$apply(function() {
-                $scope.users = response;
-                $scope.main.title = 'Users';
-            });
-        });*/
-        //var advanced = $scope.main.advanced ? 'advanced' : '';
+        console.log('User List');
         $scope.$on('loggedIn', function() {
-            //User logged-in now, TODO: do something here, maybe
-            
             var Users = $resource('/user/advanced/list', undefined, {'get': {method: 'GET', isArray: true}});
             Users.get({}, function(users) {
                 $scope.main.users = users;
@@ -24,7 +12,6 @@ cs142App.controller('UserListController', ['$scope', '$resource',
         });
         
         $scope.$on('loggedOut', function() {
-            //User logged-in now, TODO: do something here, maybe
             delete $scope.main.users;
         });
     }]);

@@ -48,7 +48,7 @@
                 
                 <md-input-container class="md-block">
                     <label>Retype Password</label>
-                    <input type="password" name="confirm_password" ng-model="registerForm.confirm_password" compare-to="registerForm.password"required />
+                    <input type="password" name="confirm_password" ng-model="registerForm.confirm_password" compare-to="registerForm.password" required />
                     <div ng-messages="register.confirm_password.$error" role="alert">
                         <div ng-message="required">Please retype your password.</div>
                         <div ng-message="compareTo">Passwords do not match.</div>

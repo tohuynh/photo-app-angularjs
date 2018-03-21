@@ -1,9 +1,11 @@
 'use strict';
 
 cs142App.controller('LoginRegisterController', ['$scope', '$resource', '$location', '$rootScope','$mdDialog', function ($scope, $resource, $location, $rootScope, $mdDialog) {
+    console.log('Login Page');
     $scope.loginForm = {};
     $scope.registerForm = {};
     $scope.registerMe = false;
+    
     $scope.loginSubmit = function() {
         var login = $resource('/admin/login');
         login.save({login_name: $scope.loginForm.login_name, password: $scope.loginForm.password}, function(user) {
@@ -55,7 +57,7 @@ cs142App.controller('LoginRegisterController', ['$scope', '$resource', '$locatio
 
 }]);
 
-(function() {
+/*(function() {
 
     cs142App.directive('compareTo', compareTo);
 
@@ -79,4 +81,22 @@ cs142App.controller('LoginRegisterController', ['$scope', '$resource', '$locatio
             }
         };
     }
-})();
+})();*/
+
+cs142App.directive('compareTo', function() {
+    return {
+        require: "ngModel",
+        scope: {
+            compareTolValue: "=compareTo"
+        },
+        link: function(scope, element, attributes, ngModel) {
+            ngModel.$validators.compareTo = function(modelValue) {
+                return modelValue === scope.compareTolValue;
+            };
+
+            scope.$watch("compareTolValue", function() {
+                ngModel.$validate();
+            });
+        }
+    };
+});

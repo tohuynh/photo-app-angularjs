@@ -1,6 +1,5 @@
 'use strict';
 cs142App.controller('UserFavoritesController', ['$scope', '$resource', '$mdDialog', '$routeParams', function($scope, $resource, $mdDialog, $routeParams) {
-    //var userId = $routeParams.userId;
     console.log('UserFavorites of ', $scope.main.loggedIn._id);
         
     var Photos = $resource('/favoritesOfUser', undefined, {'get': {method: 'GET', isArray: true}});
@@ -8,8 +7,6 @@ cs142App.controller('UserFavoritesController', ['$scope', '$resource', '$mdDialo
         $scope.photos = photos;
         $scope.main.title = 'Favorites photos of ' + $scope.main.loggedIn.first_name + ' ' + $scope.main.loggedIn.last_name;
     });
-        
-    //});
     
     $scope.showImgModal = function(ev, photo) {
         $mdDialog.show({
@@ -43,8 +40,8 @@ cs142App.controller('UserFavoritesController', ['$scope', '$resource', '$mdDialo
                var index = $scope.main.loggedIn.favorites.indexOf(photo._id);
                $scope.main.loggedIn.favorites.splice(index,1);
             }
-            console.log('removed fav');
-            console.log($scope.photos);
+            //console.log('removed fav');
+            //console.log($scope.photos);
         }, function(err) {
             console.error('unable to remove fav');
         });
