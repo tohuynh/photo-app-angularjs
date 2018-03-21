@@ -13,6 +13,7 @@ cs142App.controller('UserPhotosController', ['$scope', '$routeParams', '$sce', '
     $scope.renderHtml = function(input){
         return $sce.trustAsHtml(input);
     };
+    
     $scope.getPhotos = function() {
         var User = $resource('/user/:id');
         User.get({id: userId}, function(user) {
@@ -77,17 +78,17 @@ cs142App.controller('UserPhotosController', ['$scope', '$routeParams', '$sce', '
             console.log('add fav');
             $scope.main.loggedIn.favorites.push(photo._id);
         }, function(err) {
-            console.error('unable to remove fav');
+            console.error('unable to toggle fav');
         });
     };
     
     $scope.selectUser = function(user) {
-        console.log('inside select', user);
+        //console.log('inside select', user);
         return '@' + user.login_name;
     };
     
     $scope.searchUsers = function(term) {
-        console.log('inside search users', term);
+        //console.log('inside search users', term);
         var users = [];
         angular.forEach($scope.main.users, function(user) {
             if (user.login_name.toUpperCase().indexOf(term.toUpperCase()) >= 0) {

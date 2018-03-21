@@ -100,7 +100,7 @@ cs142App.controller('MainController', ['$scope', '$resource', '$rootScope', '$lo
         // Upload the photo file selected by the user using a post request to the URL /photos/new
         $scope.uploadPhoto = function (restricted, sharing_list) {
             if (!$scope.inputFileNameSelected()) {
-                console.error("uploadPhoto called will no selected file");
+                console.error("uploadPhoto called with no selected file");
                 return;
             }
             console.log('fileSubmitted', selectedPhotoFile);
@@ -108,14 +108,14 @@ cs142App.controller('MainController', ['$scope', '$resource', '$rootScope', '$lo
             // Create a DOM form and add the file to it under the name uploadedphoto
             var domForm = new FormData();
             domForm.append('uploadedphoto', selectedPhotoFile);
-            console.log(domForm);
-            console.log('before');
-            console.log({restricted: restricted, sharing_list: sharing_list});
+            //console.log(domForm);
+            //console.log('before');
+            //console.log({restricted: restricted, sharing_list: sharing_list});
             domForm.append('restricted', restricted);
             domForm.append('sharing_list', sharing_list);
             //domForm.append('uploadForm', {restricted: restricted, sharing_list: sharing_list});
-            console.log('main form');
-            console.log(domForm);
+            //console.log('main form');
+            //console.log(domForm);
 
             // Using $http to POST the form
             $http.post('/photos/new', domForm, {
@@ -150,13 +150,12 @@ cs142App.controller('MainController', ['$scope', '$resource', '$rootScope', '$lo
                 var login = $resource('/admin/login');
                 login.save({}, function(user) {
                     console.log('saved user from request.session.user_id');
-                    //$scope.main.loggedIn = true;
                     $scope.main.loggedIn = user;
                     $scope.main.userFirstName = user.first_name;
                     $scope.main.user_id = user._id;
                     $rootScope.$broadcast('loggedIn');
                 }, function errorHandling(err) {
-                    console.log('not logged in, send to login page');
+                    console.log('not logged in, sending to login page');
                     if (next.templateUrl !== "components/login-register/login-registerTemplate.html") {
                         $location.path("/login-register");
                     }

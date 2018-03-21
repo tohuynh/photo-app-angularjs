@@ -23,6 +23,7 @@
  *                   the values being the counts.
  *
  * The following URLs need to be changed to fetch there reply values from the database.
+ * /user          - Register a new User.
  * /user/list     -  Returns an array containing all the User objects from the database.
  *                   (JSON format)
  * /user/:id      -  Returns the User object with the _id of id. (JSON format).
@@ -79,10 +80,8 @@ app.use(function(request, response, next){
             next();
         } else if (request.originalUrl === '/admin/logout'){
             response.status(400).send('No user logged in');
-            //return;
         } else {
             response.status(401).send('Unauthorized, require user login');
-            //return;
         }
     } else {
         next();
@@ -92,26 +91,23 @@ app.use(function(request, response, next){
 
 app.post('/admin/login', function(request, response) {
     if (request.session.user_id) {
-        User.findOne({_id: request.session.user_id}, function(err, user) {
+        User.findOne({'_id': request.session.user_id}, function(err, user) {
             if (!err && user) {
                 response.status(200).send(JSON.stringify(user));
             } else {
-                response.status(400).send(JSON.stringify('unable to login with body.user_id'));
+                response.status(400).send(JSON.stringify('unable to login with request.session.user_id'));
             }
         });
         
     } else if (request.body.login_name) {
         var login_name = request.body.login_name.toLowerCase();
         var password = request.body.password;
-        User.findOne({login_name: login_name}, function(err, user) {
-            if (err) {
+        User.findOne({'login_name': login_name}, function(err, user) {
+            if (err || !user) {
                 response.status(400).send('Could not find user: ' + login_name + ', error: ' + err.toString());
                 return;
             }
-            if (!user) {
-                response.status(400).send('Login name does not exist');
-                return;
-            }
+            
             if (cs142password.doesPasswordMatch(user.password_digest, user.salt, password)) {
                 request.session.user_id = user._id;
                 request.session.login_name = user.login_name;
@@ -218,20 +214,24 @@ app.post('/user', function(request, response) {
         response.status(400).send('Empty login name, password, first name, or last name');
         return;
     }
-    User.findOne({login_name: login_name}, function(err, userObj) {
-        if (!err && userObj) {
-            response.status(400).send('Login name is taken.');
+    User.findOne({'login_name': login_name}, function(err, user) {
+        if (err) {
+            response.status(500).send('Unable to check if login name is taken.');
             return;
         }
-        var passwordEntry = cs142password.makePasswordEntry(password);
-        User.create({login_name: login_name, password_digest: passwordEntry.hash, salt: passwordEntry.salt, first_name: first_name, last_name: last_name, location: location, description: description, occupation: occupation}, function(err, newUserObj) {
-            if (err) {
-                response.status(400).send('Unable to create user: ' + login_name + ', error:' + err.toString());
-                return;
-            }
-            console.log('Create new user: ' + login_name);
-            response.status(200).send(JSON.stringify(newUserObj));
-        });
+        if (user) {
+            response.status(400).send('Login name is taken.');
+        } else {
+            var passwordEntry = cs142password.makePasswordEntry(password);
+            User.create({'login_name': login_name, 'password_digest': passwordEntry.hash, 'salt': passwordEntry.salt, 'first_name': first_name, 'last_name': last_name, 'location': location, 'description': description, 'occupation': occupation}, function(err, newUser) {
+                if (err) {
+                    response.status(400).send('Unable to create user: ' + login_name + ', error:' + err.toString());
+                    return;
+                }
+                console.log('Create new user: ' + login_name);
+                response.status(200).send(JSON.stringify(newUser));
+            });
+        }
     });
 });
 
@@ -244,7 +244,7 @@ app.get('/user/list', function (request, response) {
             response.status(200).send(JSON.stringify(users));
         } else {
             console.log('Users not found.');
-            response.status(400).send('Not found');
+            response.status(400).send('Users Not found');
         }
     });
 });
@@ -254,22 +254,16 @@ app.get('/user/list', function (request, response) {
  */
 app.get('/user/:id', function (request, response) {
     var id = request.params.id;
-    User.findOne({_id: id}, '_id first_name last_name location description occupation', function(err, user) {
+    console.log('getting user detail of', id);
+    User.findOne({'_id': id}, '_id first_name last_name location description occupation', function(err, user) {
         if(!err && user) {
             response.status(200).send(JSON.stringify(user));
         } else {
             console.log('User with _id:' + id + ' not found.');
-            response.status(400).send('Not found');
+            response.status(400).send('User Not found');
         }
         
     });
-    
-    //if (user === null) {
-    //    console.log('User with _id:' + id + ' not found.');
-    //    response.status(400).send('Not found');
-    //    return;
-    //}
-    //response.status(200).send(user);
 });
 
 /*
@@ -279,21 +273,21 @@ app.get('/mentionsOfUser/:id', function(request, response) {
     var id = request.params.id;
     console.log('getting mentions of user id', id);
     
-    User.findOne({'_id': mongoose.Types.ObjectId(id)}, 'login_name', function(err, mUserObj) {
-        if (err || !mUserObj) {
+    User.findOne({'_id': id}, 'login_name', function(err, mentionedUser) {
+        if (err || !mentionedUser) {
             response.status(400).send('unable to find mentioned user get mentions');
             return;
         }
-        var mUser = JSON.parse(JSON.stringify(mUserObj));
+        //var mUser = JSON.parse(JSON.stringify(mUserObj));
     
-        Photo.find({'mentions': {$all: [mUser.login_name]}}, '_id file_name user_id', function(err, photosObj) {
+        Photo.find({'mentions': {$all: [mentionedUser.login_name]}}, '_id file_name user_id', function(err, photosObj) {
             if (err || !photosObj) {
-                response.status(400).send(JSON.stringify(err));
+                response.status(400).send(JSON.stringify('unable to find photos where ' + id + ' is mentioned'));
                 return;
             }
             var photos = JSON.parse(JSON.stringify(photosObj));
             async.each(photos, function(photo, doneCallback) {
-                User.findOne({'_id': mongoose.Types.ObjectId(photo.user_id)}, '_id first_name last_name', function(err, userObj) {
+                User.findOne({'_id': photo.user_id}, '_id first_name last_name', function(err, userObj) {
                     if (err || !userObj) {
                         response.status(400).send('unable to find photo owner user in get mentions');
                     } else {
@@ -323,12 +317,12 @@ app.post('/mention', function(request, response) {
     var login_name = request.body.login_name;
     var photo_id = request.body.photo_id;
     console.log('adding mention to', photo_id);
-    User.findOne({login_name: login_name}, function(err, userObj) {
-        if (err || !userObj) {
+    User.findOne({'login_name': login_name}, function(err, user) {
+        if (err || !user) {
             response.status(400).send('invalid login name for adding mention');
             return;
         }
-        Photo.findOne({'_id': mongoose.Types.ObjectId(photo_id)}, function(err, photoObj) {
+        Photo.findOne({'_id': photo_id}, function(err, photoObj) {
             if (err || !photoObj) {
                 response.status(400).send('unable to get photo in adding mention');
                 return;
@@ -353,17 +347,18 @@ app.post('/mention', function(request, response) {
  * URL /favoritesOfUser - Return the favorite Photos for logged in User
  */
 app.get('/favoritesOfUser', function(request, response) {
-    var id = mongoose.Types.ObjectId(request.session.user_id);
-    User.findOne({_id: id}, 'favorites', function(err, userObj) {
-        if (err || !userObj) {
+    var id = request.session.user_id;
+    console.log('getting favorite photos of', id);
+    User.findOne({'_id': id}, 'favorites', function(err, user) {
+        if (err || !user) {
             response.status(400).send('unable find user in getting favs');
             return;
         }
-        Photo.find({'_id': {$in: userObj.favorites}}, '_id file_name date_time', function(err, photosObj) {
-            if (err || !photosObj) {
+        Photo.find({'_id': {$in: user.favorites}}, '_id file_name date_time', function(err, photos) {
+            if (err || !photos) {
                 response.status(400).send('unable to get favorites');
             } else {
-                response.status(200).send(JSON.stringify(photosObj));
+                response.status(200).send(JSON.stringify(photos));
             }
         });
         /*var favorites = JSON.parse(JSON.stringify(userObj)).favorites;
@@ -392,38 +387,38 @@ app.get('/favoritesOfUser', function(request, response) {
  * URL /favorite - delete/add favorite photo for logged in user
  */
 app.post('/favorite', function(request, response) {
-    console.log('photo id', request.body.photo_id);
-    User.findOne({_id:  mongoose.Types.ObjectId(request.session.user_id)}, 'favorites', function(err, userObj) {
+    console.log('toggle favorite of photo id:', request.body.photo_id);
+    User.findOne({'_id': request.session.user_id}, 'favorites', function(err, userObj) {
         if (err || !userObj) {
-            response.status(400).send('unable to find user in delete/add fav');
+            response.status(400).send('unable to find user in toggle fav');
             return;
         }
-        console.log(userObj.favorites);
+        //console.log(userObj.favorites);
         var favoriteIndex = -1;
         var photo_id =  request.body.photo_id;
         var user = JSON.parse(JSON.stringify(userObj));
         for (var i = 0; i < user.favorites.length; i++) {
-            console.log(user.favorites[i], photo_id);
+            //console.log(user.favorites[i], photo_id);
             if (user.favorites[i] === photo_id) {
-                console.log('found');
+                //console.log('found');
                 favoriteIndex = i;
                 break;
             }        
         }
         if (favoriteIndex === -1) {
             userObj.favorites.push(photo_id);
-            console.log('adding');
+            //console.log('adding fav');
         } else {
             userObj.favorites.splice(favoriteIndex,1);
-            console.log('removing');
+            //console.log('removing fav');
         }
         userObj.save(function(err) {
             if (err) {
-                response.status(400).send('unable to delete/add fav');
+                response.status(400).send('unable to toggle fav');
             } else {
-                console.log('deleled/added fav');
-                console.log(userObj.favorites);
-                response.status(200).send('deleted/added fav');
+                //console.log('deleled/added fav');
+                //console.log(userObj.favorites);
+                response.status(200).send();
             }
         });
         
@@ -436,25 +431,26 @@ app.post('/favorite', function(request, response) {
  */
 app.get('/photosOfUser/:id', function (request, response) {
     var id = request.params.id;
-    var photoSearchObj = {user_id: id};
+    console.log('getting photos of', id);
+    var photoSearchObj = {'user_id': id};
     if (request.query.photoId) {
         photoSearchObj._id = request.query.photoId;
     }
         
     //var photos = cs142models.photoOfUserModel(id);
-    Photo.find(photoSearchObj, '_id user_id comments file_name date_time restricted sharing_list tags', function(err, photosObject) {
-        if(err || !photosObject) {
-            console.log('Photos for user with _id:' + id + ' not found.');
+    Photo.find(photoSearchObj, '_id user_id comments file_name date_time restricted sharing_list tags', function(err, photosObj) {
+        if(err || !photosObj) {
+            //console.log('Photos for user with _id:' + id + ' not found.');
             response.status(400).send('Photos not found');
         } else {
-            var photos = JSON.parse(JSON.stringify(photosObject));
+            var photos = JSON.parse(JSON.stringify(photosObj));
             var visible_photos = photos.filter(function(photo) {
                 return !photo.restricted || (photo.user_id === request.session.user_id || photo.sharing_list.includes(request.session.user_id));
             });
             async.each(visible_photos, function(photo, donePhotoCallback) {
                 var comments = photo.comments;
                 async.each(comments, function(comment, doneCommentCallback) {
-                    User.findOne({_id: comment.user_id}, '_id first_name last_name', function(userCommentErr, user) {
+                    User.findOne({'_id': comment.user_id}, '_id first_name last_name', function(userCommentErr, user) {
                         if(userCommentErr) {
                             response.status(400).send(JSON.stringify(userCommentErr));
                         } else {
@@ -485,18 +481,10 @@ app.get('/photosOfUser/:id', function (request, response) {
             });
         }
     });
-    
-        
-    //if (photos.length === 0) {
-    //    console.log('Photos for user with _id:' + id + ' not found.');
-    //    response.status(400).send('Not found');
-     //   return;
-    //}
-    //response.status(200).send(photos);
 });
 
 app.post('/photos/new', function(request, response) {
-    
+    console.log('uploading new photo');
     processFormBody(request, response, function(err) {
         if (err || !request.file) {
             response.status(400).send(JSON.stringify(err));
@@ -504,24 +492,23 @@ app.post('/photos/new', function(request, response) {
         }
         var timestamp = new Date().valueOf();
         var filename = 'U' + String(timestamp) + request.file.originalname;
-        console.log(request.body.restricted);
-        console.log(request.body.sharing_list);
-        var uploadForm = {restricted: request.body.restricted === 'true', sharing_list: request.body.sharing_list ? request.body.sharing_list.split(',') : [] };
+        //console.log(request.body.restricted);
+        //console.log(request.body.sharing_list);
+        var uploadForm = {'restricted': request.body.restricted === 'true', 'sharing_list': request.body.sharing_list ? request.body.sharing_list.split(',') : [] };
         //var uploadForm = JSON.parse(request.body.uploadForm);
-        console.log(uploadForm);
+        //console.log(uploadForm);
         
         fs.writeFile('./images/' + filename, request.file.buffer, function(err) {
             if (err) {
                 response.status(400).send(JSON.stringify(err));
                 return;
             }
-            Photo.create({file_name: filename, date_time: timestamp, user_id: request.session.user_id, restricted: uploadForm.restricted, sharing_list: uploadForm.sharing_list}, function(err, photoObj) {
-                if (!err && photoObj) {
-                    console.log('Uploaded photo with id ', photoObj._id);
-                    console.log(photoObj.restricted);
-                    console.log(photoObj.sharing_list);
+            Photo.create({'file_name': filename, 'date_time': timestamp, 'user_id': request.session.user_id, 'restricted': uploadForm.restricted, 'sharing_list': uploadForm.sharing_list}, function(err, photo) {
+                if (!err && photo) {
+                    console.log('Uploaded photo with id ', photo._id);
+                    //console.log(photo.restricted);
+                    //console.log(photo.sharing_list);
                     response.status(200).send('uploaded photo');
-                    //response.status(200).send(JSON.stringify(photoObj));
                 } else {
                     response.status(400).send('unable to create photo');
                     //response.status(400).send(JSON.stringify(err));
@@ -534,7 +521,7 @@ app.post('/photos/new', function(request, response) {
 /*
  * URL /tagsOfPhoto/:photo_id - add/remove tag to Photo(id)
  */
-app.post('/tagsOfPhoto/:photo_id', function(request, response) {
+/*app.post('/tagsOfPhoto/:photo_id', function(request, response) {
     var photo_id = request.params.photo_id;
     Photo.findOne({'_id': mongoose.Types.ObjectId(photo_id)}, function(err, photoObj) {
         if (err || !photoObj) {
@@ -577,16 +564,17 @@ app.post('/tagsOfPhoto/:photo_id', function(request, response) {
         });
            
     });
-});
+});*/
 
 
 
 app.get('/commentsOfUser/:id', function(request, response) {
     var id = request.params.id;
+    console.log('getting comments of', id);
     Photo.aggregate([{$unwind: '$comments'}, 
         {$match: {'comments.user_id': mongoose.Types.ObjectId(id)}},
         {$match: {$or: [{'restricted': false}, {'user_id': mongoose.Types.ObjectId(request.session.user_id)}, {'sharing_list': {$all:[mongoose.Types.ObjectId(request.session.user_id)]}}]}}
-    ], function(userCmtErr, photosObj) {
+    ], function(userCmtErr, photos) {
         if (userCmtErr) {
             response.status(400).send(JSON.stringify(userCmtErr));
         } else {
@@ -594,7 +582,7 @@ app.get('/commentsOfUser/:id', function(request, response) {
             //var visible_photos = photos.filter(function(photo) {
             //    return !photo.restricted || (photo.user_id === request.session.user_id || photo.sharing_list.includes(request.session.user_id));
             //});
-            response.status(200).send(JSON.stringify(photosObj));
+            response.status(200).send(JSON.stringify(photos));
         }
     });
 });
@@ -603,21 +591,23 @@ app.get('/commentsOfUser/:id', function(request, response) {
  * URL /commentsOfPhoto/:photo_id - add comment to Photo(id)
  */
 app.post('/commentsOfPhoto/:photo_id', function(request, response) {
+    var photo_id = request.params.photo_id;
+    console.log('adding comment to photo id', photo_id);
     if (request.body.comment === '') {
         response.status(400).send('Empty comment not allowed!');
         return;
     }
-    User.findOne({_id: request.session.user_id}, '_id first_name last_name', function(err, user) {
+    User.findOne({'_id': request.session.user_id}, '_id first_name last_name', function(err, user) {
         if (!err && user) {
-            Photo.findOne({_id: request.params.photo_id}, function(err, photo) {
+            Photo.findOne({'_id': photo_id}, function(err, photo) {
                 if (!err && photo) {
-                    var commentObj = {user_id: mongoose.Types.ObjectId(request.session.user_id), date_time: new Date(), comment: request.body.comment};
+                    var commentObj = {'user_id': mongoose.Types.ObjectId(request.session.user_id), 'date_time': new Date(), 'comment': request.body.comment};
                     photo.comments.push(commentObj);
                     photo.save(function(err) {
                         if (err) {
                             response.status(400).send(JSON.stringify(err));
                         } else {
-                            commentObj.user = user;
+                            commentObj.user = JSON.parse(JSON.stringify(user));
                             delete commentObj.user_id;
                             response.status(200).send(JSON.stringify(commentObj));
                         }
@@ -633,9 +623,10 @@ app.post('/commentsOfPhoto/:photo_id', function(request, response) {
 });
 
 app.get('/user/advanced/list', function(request, response) {
+    console.log('getting list of users');
     User.find({}, '_id first_name last_name login_name', function(err, usersObj) {
         if (err || !usersObj) {
-            console.log('Users not found.');
+            //console.log('Users not found.');
             response.status(400).send('Not found');
             return;
         }
@@ -659,7 +650,7 @@ app.get('/user/advanced/list', function(request, response) {
                             //response.status(400).send(JSON.stringify(err));
                             response.status(400).send(JSON.stringify('cmt count err'));
                         } else {
-                            console.log(comment_result);
+                            //console.log(comment_result);
                             user.comment_count = comment_result[0] ? comment_result[0].comment_count : 0;
                             //response.status(200).send(JSON.stringify(result));
                             doneUserCallback();
@@ -687,4 +678,3 @@ var server = app.listen(3000, function () {
     var port = server.address().port;
     console.log('Listening at http://localhost:' + port + ' exporting the directory ' + __dirname);
 });
-

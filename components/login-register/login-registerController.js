@@ -1,7 +1,6 @@
 'use strict';
 
 cs142App.controller('LoginRegisterController', ['$scope', '$resource', '$location', '$rootScope','$mdDialog', function ($scope, $resource, $location, $rootScope, $mdDialog) {
-
     $scope.loginForm = {};
     $scope.registerForm = {};
     $scope.registerMe = false;
@@ -27,7 +26,7 @@ cs142App.controller('LoginRegisterController', ['$scope', '$resource', '$locatio
     };
     
     $scope.registerSubmit = function() {
-        console.log($scope.registerForm );
+        //console.log($scope.registerForm );
         var register = $resource('/user');
         register.save({login_name: $scope.registerForm.login_name, 
             	password: $scope.registerForm.password, 
